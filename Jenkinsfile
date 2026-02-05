@@ -24,6 +24,7 @@ pipeline {
                         bat """
                             docker run --rm ^
                             -v "%WORKSPACE%":/work ^
+                            -e ANSIBLE_HOST_KEY_CHECKING=False ^
                             willhallonline/ansible:alpine ^
                             sh -c "cp /work/ansible_key_temp /tmp/ssh_key && chmod 600 /tmp/ssh_key && ansible-playbook -i /work/ansible/inventory.ini --private-key /tmp/ssh_key /work/ansible/playbook.yml"
                         """

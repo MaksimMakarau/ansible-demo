@@ -1,20 +1,36 @@
 ---
-- name: Install Nginx via Jenkins
+- name: Configure Nginx and Filebeat
   hosts: db_servers
-  become: yes  # Важно: Выполнять от имени root (sudo), так как ставим программы
+  become: yes
   
   tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-
-    - name: Install Nginx
+    # 1. Установка Nginx (если вдруг нет)
+    - name: Ensure Nginx is installed
       apt:
         name: nginx
         state: present
+        update_cache: yes
 
-    - name: Start Nginx service
+    - name: Ensure Nginx is running
       service:
         name: nginx
         state: started
         enabled: yes
+
+    # 2. Обновление конфига Filebeat
+    # Мы копируем наш объединенный файл поверх старого
+    - name: Upload merged Filebeat configuration
+      copy:
+        src: filebeat.yml
+        dest: /etc/filebeat/filebeat.yml
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart Filebeat
+
+  # Перезапуск произойдет только если файл изменился
+  handlers:
+    - name: Restart Filebeat
+      service:
+        name: filebeat
+        state: restarted

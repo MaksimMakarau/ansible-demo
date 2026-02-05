@@ -1,1 +1,16 @@
+---
+- name: Demo Playbook for Jenkins
+  hosts: db_servers
+  gather_facts: no  # Отключаем долгий сбор фактов для теста
+  
+  tasks:
+    - name: Ping the server
+      ping:
 
+    - name: Check server uptime
+      command: uptime
+      register: uptime_result
+
+    - name: Print uptime
+      debug:
+        msg: "Server uptime is: {{ uptime_result.stdout }}"

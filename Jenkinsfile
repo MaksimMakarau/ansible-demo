@@ -10,8 +10,13 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
-                // Достаем секретный файл (ключ) из Jenkins
-                withCredentials([file(credentialsId: 'ansible-ssh-key-file', variable: 'SSH_KEY_PATH')]) {
+                // Мы запрашиваем ДВА секрета: 
+                // 1. Файл ключа SSH (file)
+                // 2. Пароль для sudo (string/text)
+                withCredentials([
+                    file(credentialsId: 'ansible-ssh-key-file', variable: 'SSH_KEY_PATH'),
+                    string(credentialsId: 'debian-sudo-pass', variable: 'SUDO_PASSWORD')
+                ]) {
                     script {
                         echo "Запускаем Ansible..."
                         
@@ -21,10 +26,14 @@ pipeline {
                         
                         // 2. Запускаем Docker с Ansible
                         // Мы монтируем текущую папку (%WORKSPACE%) внутрь контейнера в папку /work
+                        // Мы добавляем строку: -e ANSIBLE_BECOME_PASS=%SUDO_PASSWORD%
+                        // Jenkins подставит значение секрета в переменную SUDO_PASSWORD
+                        // А Docker передаст её внутрь контейнера как ANSIBLE_BECOME_PASS
                         bat """
                             docker run --rm ^
                             -v "%WORKSPACE%":/work ^
                             -e ANSIBLE_HOST_KEY_CHECKING=False ^
+                            -e ANSIBLE_BECOME_PASS=%SUDO_PASSWORD% ^
                             willhallonline/ansible:alpine ^
                             sh -c "cp /work/ansible_key_temp /tmp/ssh_key && chmod 600 /tmp/ssh_key && ansible-playbook -i /work/ansible/inventory.ini --private-key /tmp/ssh_key /work/ansible/playbook.yml"
                         """

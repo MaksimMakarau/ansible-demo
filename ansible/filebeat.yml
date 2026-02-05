@@ -5,14 +5,14 @@
 filebeat.inputs:
 
 # 1. Логи Nginx (Добавлено нами)
-- type: log
-  enabled: true
-  paths:
-    - /var/log/nginx/access.log
-    - /var/log/nginx/error.log
-  fields:
-    type: nginx_access
-
+#- type: log
+#  enabled: true
+#  paths:
+#    - /var/log/nginx/access.log
+#    - /var/log/nginx/error.log
+#  fields:
+#    type: nginx_access
+   
 # 2. Стандартный инпут (был у тебя, оставим выключенным, как было)
 - type: filestream
   id: my-filestream-id
@@ -63,6 +63,17 @@ migration.6_to_7.enabled: true
 # ========================== PostgreSQL Module (Твой) ==========================
 # Оставляем этот блок, чтобы логи базы данных продолжали идти
 filebeat.modules:
+
+# 1. Модуль Nginx (Парсит логи, достает User Agent, IP, GeoIP)
+- module: nginx
+  access:
+    enabled: true
+    var.paths: ["/var/log/nginx/access.log"]
+  error:
+    enabled: true
+    var.paths: ["/var/log/nginx/error.log"]
+
+# 2. Модуль PostgreSQL
 - module: postgresql
   log:
     enabled: true

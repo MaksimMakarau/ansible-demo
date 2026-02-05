@@ -1,16 +1,20 @@
 ---
-- name: Demo Playbook for Jenkins
+- name: Install Nginx via Jenkins
   hosts: db_servers
-  gather_facts: no  # Отключаем долгий сбор фактов для теста
+  become: yes  # Важно: Выполнять от имени root (sudo), так как ставим программы
   
   tasks:
-    - name: Ping the server
-      ping:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
 
-    - name: Check server uptime
-      command: uptime
-      register: uptime_result
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
 
-    - name: Print uptime
-      debug:
-        msg: "Server uptime is: {{ uptime_result.stdout }}"
+    - name: Start Nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes

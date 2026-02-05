@@ -4,6 +4,10 @@
   become: yes
   
   tasks:
+    # --- Настройка времени (Добавляем это) ---
+    - name: Set timezone to Europe/Warsaw
+      timezone:
+        name: Europe/Warsaw  # <-- Замени на свой город (Europe/Minsk, Europe/Moscow и т.д.)
     # 1. Установка Nginx (если вдруг нет)
     - name: Ensure Nginx is installed
       apt:
